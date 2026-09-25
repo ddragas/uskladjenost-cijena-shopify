@@ -1,0 +1,18 @@
+{
+  "name": "uskladjenost-cijena-shopify",
+  "version": "1.0.0",
+  "description": "Shopify custom app for Usklađenost cijena (uskladjenost-cijena.com): product webhooks and the App Proxy that prints the anchor price under the price, under NN 101/2026.",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=18" },
+  "bin": { "uc-shopify-server": "./bin/server.js", "uc-shopify-sync-all": "./bin/sync-all.js" },
+  "scripts": {
+    "start": "node bin/server.js",
+    "sync": "node bin/sync-all.js",
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": ["uskladjenost-cijena", "shopify", "sidrena-cijena", "cjenik", "NN 101/2026", "price-compliance", "croatia"],
+  "author": "Info Media d.o.o. <support@info-media.it>",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/ddragas/uskladjenost-cijena-shopify" }
+}

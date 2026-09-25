@@ -1,0 +1,49 @@
+{% comment %}
+  Usklađenost cijena: the anchor price under the price, from the app proxy
+  /apps/uskladjenost/compliance?variant_id=… (App Proxy → /proxy on the app).
+
+  Put it right after the price in the product template (Dawn:
+  sections/main-product.liquid, inside the price block), then re-render on
+  a variant change:
+
+    {% render 'uskladjenost-cijena', product: product, variant: product.selected_or_first_available_variant %}
+{% endcomment %}
+{%- if variant -%}
+<span class="uc-anchor-price" data-uc-anchor data-uc-variant="{{ variant.id }}" style="display:block;font-size:.85em;opacity:.8;min-height:1.2em"></span>
+{%- unless uc_script_rendered -%}
+{%- assign uc_script_rendered = true -%}
+<script>
+(function () {
+  if (window.__ucAnchor) return;
+  window.__ucAnchor = true;
+  var cache = {};
+  function paint(el, variantId) {
+    if (!variantId) { el.textContent = ''; return; }
+    if (cache[variantId] !== undefined) { el.textContent = cache[variantId] || ''; return; }
+    fetch('/apps/uskladjenost/compliance?variant_id=' + encodeURIComponent(variantId), { headers: { Accept: 'application/json' } })
+      .then(function (r) { return r.ok ? r.json() : { label: null }; })
+      .then(function (d) { cache[variantId] = d && d.label ? d.label : ''; el.textContent = cache[variantId]; })
+      .catch(function () { el.textContent = ''; });
+  }
+  function currentVariant(el) {
+    var form = el.closest('form[action*="/cart/add"], product-info, .product, main') || document;
+    var input = form.querySelector('input[name="id"], select[name="id"]');
+    if (input && input.value) return input.value;
+    var fromUrl = new URL(location.href).searchParams.get('variant');
+    return fromUrl || el.getAttribute('data-uc-variant');
+  }
+  function refresh() {
+    document.querySelectorAll('[data-uc-anchor]').forEach(function (el) { paint(el, currentVariant(el)); });
+  }
+  document.addEventListener('DOMContentLoaded', refresh);
+  if (document.readyState !== 'loading') refresh();
+  document.addEventListener('change', function (e) {
+    if (e.target && e.target.closest && e.target.closest('form[action*="/cart/add"], variant-selects, variant-radios, product-info')) setTimeout(refresh, 50);
+  });
+  window.addEventListener('popstate', refresh);
+  var replaceState = history.replaceState;
+  history.replaceState = function () { replaceState.apply(this, arguments); setTimeout(refresh, 0); };
+})();
+</script>
+{%- endunless -%}
+{%- endif -%}
